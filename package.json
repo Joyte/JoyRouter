@@ -1,6 +1,6 @@
 {
     "name": "@joyte/joyrouter",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "JoyRouter is a router designed for cloudflare workers.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
