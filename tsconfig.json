@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "commonjs",
+    "target": "es2021",
+    "lib": [
+        "es2021"
+    ],
+    "types": [
+      "@cloudflare/workers-types",
+    ],
+    "strict": true,
+    "declaration": true,
+  },
+  "include": ["./src"],
+  "exclude": ["node_modules"]
+}

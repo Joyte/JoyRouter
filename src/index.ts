@@ -14,14 +14,14 @@ export class ClientError extends Error {
 /**
  * JoyRouter is a router designed for cloudflare workers.
  * It has many functionalities, such as:
- *  * An API testing page
+ *  * Swagger UI documentation
  *  * Automatic OPTIONS request handling
  *  * Middleware
  *  * JSON responses
  *  * Error responses
  *  * And more!
  *
- * To access the api testing page, go to the url of your worker with the path '/docs'.
+ * To access swagger ui, go to the url of your worker with the path '/docs'.
  * This page can be disabled by setting the `internalRoutes` option to false.
  *
  * @example
