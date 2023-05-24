@@ -7,10 +7,10 @@
         "es2021"
     ],
     "types": [
-      "@cloudflare/workers-types",
+      "@cloudflare/workers-types"
     ],
     "strict": true,
-    "declaration": true,
+    "declaration": true
   },
   "include": ["./src"],
   "exclude": ["node_modules"]

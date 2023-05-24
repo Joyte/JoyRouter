@@ -1,17 +1,58 @@
-# Welcome to MkDocs
+# JoyRouter
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+JoyRouter is a router designed for cloudflare workers. It has many functionalities, such as:
 
-## Commands
+-   Swagger UI documentation
+-   Automatic OPTIONS request handling
+-   Middleware
+-   JSON responses
+-   Error responses
+-   And more!
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+To access swagger ui, go to the url of your worker with the path '/docs'.
+This page can be disabled by setting the `internalRoutes` option to false.
 
-## Project layout
+It is **_highly_** recommended to use the `jrdoc` tag along with [Jrdoc Highlighting for VSCode](https://marketplace.visualstudio.com/items?itemName=SinelServers.jrdoc-highlighting).
+This will ease the process of creating your routes.
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+## Documentation
+
+Documentation can be found [here](https://joyrouter.joyte.cc/).
+
+## Installation
+
+```bash
+npm i @joyte/joyrouter
+```
+
+## Usage
+
+```ts
+import { JoyRouter } from "@joyte/joyrouter";
+
+const router = new JoyRouter();
+
+function post_path(request: Request) {
+    return new Response("Hello world!", { status: 200 });
+}
+
+function get_path(request: Request, returnable: string) {
+    /*jrdoc*/`
+    An example function that returns the query parameter.
+    @param where:query type:string name:returnable | The parameter to return
+    `;
+
+    return new Response(returnable, { status: 200 });
+}
+
+router
+    .json("GET", "/", { detail: "Hello world!" }, 200)
+    .post("/", post_path);
+    .get
+
+export default {
+    async fetch(request: Request) {
+        return await router.handle(req);
+    },
+};
+```

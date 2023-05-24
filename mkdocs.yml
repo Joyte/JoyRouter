@@ -3,6 +3,9 @@ repo_url: https://github.com/Sinel-Servers/JoyRouter
 repo_name: JoyRouter
 edit_uri: edit/main/docs/
 
+nav:
+  - Home: index.md
+
 theme:
   name: material
   features:
@@ -11,6 +14,7 @@ theme:
     - navigation.tabs
     - navigation.top
     - content.action.edit
+    - content.code.copy
 
   palette:
     # Palette toggle for light mode
@@ -36,3 +40,10 @@ theme:
 
 plugins:
   - search
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
