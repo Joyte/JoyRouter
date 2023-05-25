@@ -3,8 +3,42 @@ repo_url: https://github.com/Sinel-Servers/JoyRouter
 repo_name: JoyRouter
 edit_uri: edit/main/docs/
 
+extra_css:
+  - extra/custom.css
+
 nav:
   - Home: index.md
+
+  - JoyRouter:
+      - Home: joyrouter/index.md
+      - Installation: joyrouter/installation.md
+      - Basic Usage: joyrouter/basic_usage.md
+      - Advanced Usage:
+          - Methods:
+              - get: joyrouter/advanced_usage/methods/get.md
+              - post: joyrouter/advanced_usage/methods/post.md
+              - put: joyrouter/advanced_usage/methods/put.md
+              - patch: joyrouter/advanced_usage/methods/patch.md
+              - delete: joyrouter/advanced_usage/methods/delete.md
+              - connect: joyrouter/advanced_usage/methods/connect.md
+              - custom: joyrouter/advanced_usage/methods/custom.md
+              - all: joyrouter/advanced_usage/methods/all.md
+          - json: joyrouter/advanced_usage/json.md
+          - errorResponse: joyrouter/advanced_usage/errorResponse.md
+          - Middleware: joyrouter/advanced_usage/middleware.md
+          - Function Arguments: joyrouter/advanced_usage/function_arguments.md
+
+  - Jrdoc:
+      - Home: jrdoc/index.md
+      - Param: jrdoc/param.md
+      - Returns: jrdoc/returns.md
+      - Throws: jrdoc/throws.md
+      - Example: jrdoc/example.md
+      - Additional: jrdoc/additional.md
+      - Category: jrdoc/category.md
+      - Jrdoc Examples: jrdoc/jrdoc_examples.md
+
+  - Examples: examples.md
 
 theme:
   name: material
@@ -13,7 +47,6 @@ theme:
     - navigation.tracking
     - navigation.tabs
     - navigation.top
-    - content.action.edit
     - content.code.copy
 
   palette:
@@ -46,4 +79,7 @@ markdown_extensions:
       anchor_linenums: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
+  - admonition
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
