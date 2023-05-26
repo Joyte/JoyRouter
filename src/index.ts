@@ -373,9 +373,26 @@ export class JoyRouter {
     private getHandlerArgs(request: Request): {
         [key: string]: { [key: string]: string };
     } {
-        return this.handlerArgs[this.getPathInternal(request.url)][
-            request.method
-        ];
+        let args = this.handlerArgs[this.getPathInternal(request.url)];
+        if (!args || !args[request.method]) {
+            return {};
+        }
+
+        return args[request.method];
+    }
+
+    /**
+     * Get the category of a handler function.
+     * @param request The request to get the arguments from.
+     * @returns The arguments of the handler function.
+     */
+    private getHandlerCategory(request: Request): string {
+        let args = this.handlerCategories[this.getPathInternal(request.url)];
+        if (!args || !args[request.method]) {
+            return "default";
+        }
+
+        return args[request.method];
     }
 
     /**
@@ -397,7 +414,8 @@ export class JoyRouter {
             .split("&")
             .forEach((query) => {
                 const [key, value] = query.split("=");
-                queryDict[key] = value;
+                // Unurlify the value and set
+                queryDict[key] = decodeURIComponent(value);
             });
 
         return queryDict;
@@ -803,7 +821,7 @@ export class JoyRouter {
                         }
                         break;
                     case "object":
-                        result = JSON.parse(decodeURIComponent(data!));
+                        result = JSON.parse(data!);
                         break;
                     default:
                         console.warn(
@@ -1042,11 +1060,7 @@ export class JoyRouter {
             if (middleware.before) continue;
 
             // Check if the middleware category is the same as the function's category
-            if (
-                this.handlerCategories[this.getPathInternal(request.url)][
-                    request.method
-                ] !== middleware.category
-            ) {
+            if (this.getHandlerCategory(request) !== middleware.category) {
                 continue;
             }
 
