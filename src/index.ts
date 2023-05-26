@@ -445,22 +445,6 @@ export class JoyRouter {
     }
 
     /**
-     * Handle a request to any method.
-     * @param path The path to handle.
-     * @param handler The handler to use.
-     * @returns The BittyRouter instance.
-     * @example
-     * router.all("*", async () => {
-     *    return new Response(JSON.stringify({ detail: "404 Not Found" }), {
-     *       status: 404,
-     * });});
-     */
-    all(path: string, handler: (...args: any) => Promise<Response>): JoyRouter {
-        this.addRoute(path, "*", handler);
-        return this;
-    }
-
-    /**
      * Handle a request to the GET method.
      * @param path The path to handle.
      * @param handler The handler to use.
@@ -473,33 +457,6 @@ export class JoyRouter {
      */
     get(path: string, handler: (...args: any) => Promise<Response>): JoyRouter {
         this.addRoute(path, "GET", handler);
-        return this;
-    }
-
-    /**
-     * Handle a request to a method, and return predefined JSON.
-     * @param method The method to handle.
-     * @param path The path to handle.
-     * @param json The JSON to return.
-     * @param code The status code to return.
-     * @returns The BittyRouter instance.
-     * @example
-     * router.getjson("/", { detail: "Hello, world!" }, 200);
-     */
-    json(
-        method: string,
-        path: string,
-        json: { [key: string]: any },
-        code: number = 200,
-        statusText: string = ""
-    ): JoyRouter {
-        this.addRoute(path, method, async (request: Request) => {
-            return new Response(JSON.stringify(json), {
-                status: code,
-                statusText: statusText,
-            });
-        });
-
         return this;
     }
 
@@ -613,6 +570,49 @@ export class JoyRouter {
         handler: (...args: any) => Promise<Response>
     ): JoyRouter {
         this.addRoute(path, method.toUpperCase(), handler);
+        return this;
+    }
+
+    /**
+     * Handle a request to any method.
+     * @param path The path to handle.
+     * @param handler The handler to use.
+     * @returns The BittyRouter instance.
+     * @example
+     * router.all("*", async () => {
+     *    return new Response(JSON.stringify({ detail: "404 Not Found" }), {
+     *       status: 404,
+     * });});
+     */
+    all(path: string, handler: (...args: any) => Promise<Response>): JoyRouter {
+        this.addRoute(path, "*", handler);
+        return this;
+    }
+
+    /**
+     * Handle a request to a method, and return predefined JSON.
+     * @param method The method to handle.
+     * @param path The path to handle.
+     * @param json The JSON to return.
+     * @param code The status code to return.
+     * @returns The BittyRouter instance.
+     * @example
+     * router.getjson("/", { detail: "Hello, world!" }, 200);
+     */
+    json(
+        method: string,
+        path: string,
+        json: { [key: string]: any },
+        code: number = 200,
+        statusText: string = ""
+    ): JoyRouter {
+        this.addRoute(path, method, async (request: Request) => {
+            return new Response(JSON.stringify(json), {
+                status: code,
+                statusText: statusText,
+            });
+        });
+
         return this;
     }
 

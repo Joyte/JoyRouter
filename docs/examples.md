@@ -79,7 +79,7 @@ function makeUser(name: string, age: number): [string, number] {
     Make a new user
     @param where:query type:string name:name | The name of the user
     @param where:query type:number name:age | The age of the user
-    @depreciated
+    @deprecated
     `;
     holder.users[name] = [age];
     return [name, age];
@@ -161,7 +161,7 @@ function addBook(title: string, author: string): [string, string] {
     Add a new book to the library
     @param where:query type:string name:title | The title of the book
     @param where:query type:string name:author | The author of the book
-    @depreciated
+    @deprecated
     `;
     library.books[title] = [author];
     return [title, author];
@@ -251,7 +251,7 @@ function addCar(
     @param where:query type:string name:model | The model of the car
     @param where:query type:string name:make | The make of the car
     @param where:query type:number name:price | The price of the car
-    @depreciated
+    @deprecated
     @category auth
     `;
     dealership.cars[model] = [make, price];

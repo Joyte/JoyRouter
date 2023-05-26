@@ -8,7 +8,7 @@ title: JrDoc x2 Examples
 Make a new user
 @param where:path type:string name:name | The name of the user
 @param where:query type:number name:age | The age of the user
-@depreciated
+@deprecated
 ```
 
 ```jrdoc

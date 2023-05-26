@@ -64,12 +64,12 @@ The general format for a param tag is as follows:
 
         In this example, `id` is an optional argument.
 
-    === "depreciated"
+    === "deprecated"
 
         This flag signifies that the parameter is deprecated and should not be used.
 
         ```jsdoc
-        @param where:path type:number name:id depreciated | The deprecated cat's id
+        @param where:path type:number name:id deprecated | The deprecated cat's id
         ```
 
         In this example, `id` is a deprecated argument.
