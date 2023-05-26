@@ -5,7 +5,30 @@ on:
         types: [created]
 
 jobs:
+    update-version:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out code
+              uses: actions/checkout@v2
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: "16.x"
+            - name: Install npm
+              run: npm install
+            - name: npm version
+              run: |
+                  version=$(echo "${{ github.ref }}" | sed -e "s/refs\/tags\///g")
+                  npm version $version --no-git-tag-version
+            - name: Push changes
+              run: |
+                  git config --local user.email "action@github.com"
+                  git config --local user.name "GitHub Action"
+                  git commit -m "Update package.json semver" -a
+                  git push
+
     build-and-publish-npm:
+        needs: update-version
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v2
