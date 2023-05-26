@@ -139,13 +139,20 @@ export class JoyRouter {
             params: Array<string>;
         };
     } = {};
-    private middleware: { [key: number]: Function } = {};
+    private middleware: {
+        [key: number]: { category: string; handler: Function; before: Boolean };
+    } = {};
     private routes: { [path: string]: { [method: string]: Function } } = {};
     private handlerArgs: {
         [path: string]: {
             [method: string]: {
                 [key: string]: { [key: string]: string };
             };
+        };
+    } = {};
+    private handlerCategories: {
+        [path: string]: {
+            [method: string]: string;
         };
     } = {};
 
@@ -274,6 +281,19 @@ export class JoyRouter {
             // Remove the path variables from the path and format them like {variable}
             path = path.replace(this.pathVariablesRegex, "/{$1}");
         }
+
+        // Get category from jsdoc
+        const category = responseHandler
+            .toString()
+            .match(this.docs.jsdocRegex)?.[0]
+            .match(/@category ([^ ]*)/)?.[1]
+            .trim();
+
+        // Add the category to the handlerCategories dict
+        this.handlerCategories[path] = {
+            ...this.handlerCategories[path],
+            [method]: category || "default",
+        };
 
         const handlerArgs = this.getTypedFunctionArgs(responseHandler);
         this.handlerArgs[path] = {
@@ -654,7 +674,7 @@ export class JoyRouter {
             if (this.runMiddlewareOnError) {
                 for (const middleware of Object.values(this.middleware)) {
                     try {
-                        res = await middleware(res);
+                        res = await middleware.handler(res);
                     } catch (e) {
                         console.error(e);
                         // Return 500 if middleware fails
@@ -691,10 +711,36 @@ export class JoyRouter {
      * router.middleware(middleware);
      */
     use(
-        middleware: (res: Response) => Response | Promise<Response>
+        middleware: (res: Response) => Response | Promise<Response>,
+        category: string = "default"
     ): JoyRouter {
-        // Add middleware to the dictionary, with the key being the length of the dictionary
-        this.middleware[Object.keys(this.middleware).length] = middleware;
+        // Make sure middleware only takes one parameter
+        if (middleware.length !== 1) {
+            throw new Error(
+                `Invalid middleware function! Middleware must take a single parameter named either "request" or "response".`
+            );
+        }
+
+        // Check what parameters the middleware function takes. If it is not response or request, throw an error.
+        const functionAsString = middleware.toString();
+        const args = functionAsString
+            .split("\n")[0]
+            .replace(/.*\((.*)\).*/, "$1")
+            .split(",")
+            .map((arg) => arg.trim());
+
+        if (!["response", "request"].includes(args[0])) {
+            throw new Error(
+                `Invalid middleware function! Middleware must take a single parameter named either "request" or "response".`
+            );
+        }
+
+        // Add middleware to the dictionary, with the key being the length of the dictionary, with the category as "default"
+        this.middleware[Object.keys(this.middleware).length] = {
+            handler: middleware,
+            category: category,
+            before: args[0] === "request",
+        };
 
         return this;
     }
@@ -903,6 +949,24 @@ export class JoyRouter {
         // Get the handler and params
         let { handler, params } = this.getHandler(request);
 
+        // Run the before middleware
+        for (const middleware of Object.values(this.middleware)) {
+            // Check if the middleware is an before middleware
+            if (!middleware.before) continue;
+
+            // Check if the middleware category is the same as the function's category
+            if (
+                this.handlerCategories[this.getPathInternal(request.url)][
+                    request.method
+                ] !== middleware.category
+            ) {
+                continue;
+            }
+
+            // Run the middleware
+            request = await middleware.handler(request);
+        }
+
         // Check if the handler wants a request object, and if so what position it is in.
         // Any other arguments should be filled with the appropriate values.
         let handlerArgs;
@@ -949,7 +1013,7 @@ export class JoyRouter {
         }
 
         // Run the handler
-        let res = handler.apply(null, args).catch((e: Error) => {
+        let response = handler.apply(null, args).catch((e: Error) => {
             if (this.handleErrors) {
                 console.error(e);
                 return this.errorResponse(500)();
@@ -958,16 +1022,28 @@ export class JoyRouter {
             }
         });
 
-        // Run the middleware
+        // Run the after middleware
         for (const middleware of Object.values(this.middleware)) {
-            res = res.then((res: Response) => {
-                return middleware(res);
+            // Check if the middleware is an after middleware
+            if (middleware.before) continue;
+
+            // Check if the middleware category is the same as the function's category
+            if (
+                this.handlerCategories[this.getPathInternal(request.url)][
+                    request.method
+                ] !== middleware.category
+            ) {
+                continue;
+            }
+
+            response = response.then((response: Response) => {
+                return middleware.handler(response);
             });
         }
 
         // HTTP Head method
         if (request.method === "HEAD") {
-            res = res.then((res: Response) => {
+            response = response.then((res: Response) => {
                 return new Response(null, {
                     status: res.status,
                     statusText: res.statusText,
@@ -976,6 +1052,6 @@ export class JoyRouter {
             });
         }
 
-        return res;
+        return response;
     }
 }
