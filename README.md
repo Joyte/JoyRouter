@@ -24,13 +24,13 @@ Documentation can be found [here](https://joyrouter.joyte.cc/).
 # Installation
 
 ```bash
-npm i @joyte/joyrouter
+npm i joyrouter
 ```
 
 # Usage
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 
 const router = new JoyRouter();
 
