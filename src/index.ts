@@ -2,12 +2,16 @@ import { JoyRouterDocs } from "./docs";
 
 // Custom error
 export class ClientError extends Error {
-    public message: string;
-    public status: number = 400;
-    constructor(message: string, status: number = 400) {
-        super(message);
-        this.message = message;
-        this.status = status;
+    public statusMessage: string = "Client Error";
+    public statusCode: number = 400;
+
+    constructor(statusMessage: string, statusCode: number = 400) {
+        super(statusMessage);
+        this.statusMessage = statusMessage;
+        this.statusCode = statusCode;
+
+        // Set the prototype explicitly.
+        Object.setPrototypeOf(this, ClientError.prototype);
     }
 }
 
@@ -41,9 +45,9 @@ export class ClientError extends Error {
  */
 export class JoyRouter {
     /**
-     * errorHeaders is a list of headers that are used by default with the errorResponse method.
+     * specialHeaders is a list of headers that are used by default with the errorResponse method, and other related methods like json.
      */
-    public errorHeaders: { [key: string]: string } = {
+    public specialHeaders: { [key: string]: string } = {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
         "Accept-Charset": "utf-8",
@@ -105,11 +109,6 @@ export class JoyRouter {
      * Not recommended for production use.
      */
     public enableTRACEMethod: boolean = false;
-
-    /**
-     * Whether you want to run middleware on error responses.
-     */
-    public runMiddlewareOnError: boolean = true;
 
     /**
      * Whether you want internal routes like /docs and /openapi.json to be enabled.
@@ -630,6 +629,7 @@ export class JoyRouter {
             return new Response(JSON.stringify(json), {
                 status: code,
                 statusText: statusText,
+                headers: this.specialHeaders,
             });
         });
 
@@ -671,26 +671,26 @@ export class JoyRouter {
             );
 
             // Run middleware if enabled
-            if (this.runMiddlewareOnError) {
-                for (const middleware of Object.values(this.middleware)) {
-                    try {
-                        res = await middleware.handler(res);
-                    } catch (e) {
-                        console.error(e);
-                        // Return 500 if middleware fails
-                        return new Response(
-                            JSON.stringify({
-                                detail: this.errorResponses[500],
+            for (const middleware of Object.values(this.middleware)) {
+                if (middleware.category !== "error") continue;
+
+                try {
+                    res = await middleware.handler(res);
+                } catch (e) {
+                    console.error(e);
+                    // Return 500 if middleware fails
+                    return new Response(
+                        JSON.stringify({
+                            detail: this.errorResponses[500],
+                        }),
+                        {
+                            status: 500,
+                            statusText: this.errorResponses[500],
+                            headers: new Headers({
+                                "Content-Type": "application/json",
                             }),
-                            {
-                                status: 500,
-                                statusText: this.errorResponses[500],
-                                headers: new Headers({
-                                    "Content-Type": "application/json",
-                                }),
-                            }
-                        );
-                    }
+                        }
+                    );
                 }
             }
             return res;
@@ -964,7 +964,15 @@ export class JoyRouter {
             }
 
             // Run the middleware
-            request = await middleware.handler(request);
+            try {
+                request = await middleware.handler(request);
+            } catch (e) {
+                if (e instanceof ClientError) {
+                    return this.errorResponse(e.statusCode, e.statusMessage)();
+                } else if (e instanceof Error) {
+                    return this.errorResponse(500, e.message)();
+                }
+            }
         }
 
         // Check if the handler wants a request object, and if so what position it is in.
@@ -1036,9 +1044,20 @@ export class JoyRouter {
                 continue;
             }
 
-            response = response.then((response: Response) => {
-                return middleware.handler(response);
-            });
+            response = response
+                .then((response: Response) => {
+                    return middleware.handler(response);
+                })
+                .catch((e: Error | ClientError) => {
+                    if (e instanceof ClientError) {
+                        return this.errorResponse(
+                            e.statusCode,
+                            e.statusMessage
+                        )();
+                    } else if (e instanceof Error) {
+                        return this.errorResponse(500, e.message)();
+                    }
+                });
         }
 
         // HTTP Head method
