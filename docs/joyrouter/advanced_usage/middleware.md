@@ -75,7 +75,7 @@ To do this, use `router.use` with `request: Request`:
 !!! example
 
     ```ts
-    import { ClientError, JoyRouter } from "@joyte/joyrouter";
+    import { ClientError, JoyRouter } from "joyrouter";
 
     const router = new JoyRouter();
 

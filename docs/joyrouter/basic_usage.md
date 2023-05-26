@@ -3,7 +3,7 @@
 To use JoyRouter, import it from the source:
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 ```
 
 Then, create a new instance of the router:
@@ -60,7 +60,7 @@ export default {
 ## Full code:
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 
 const router = new JoyRouter();
 

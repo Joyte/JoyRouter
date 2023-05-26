@@ -5,19 +5,19 @@ To install the package, one of the following commands can be used:
     === "npm"
 
         ```bash
-        npm i @joyte/joyrouter
+        npm i joyrouter
         ```
 
     === "yarn"
 
         ```bash
-        yarn add @joyte/joyrouter
+        yarn add joyrouter
         ```
 
     === "pnpm"
 
         ```bash
-        pnpm add @joyte/joyrouter
+        pnpm add joyrouter
         ```
 
 ## Usage

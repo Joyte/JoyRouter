@@ -6,7 +6,7 @@ hide:
 ### Example A: Basic router
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 
 const router = new JoyRouter();
 
@@ -24,7 +24,7 @@ export default {
 ### Example B: Advanced router
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 
 const router = new JoyRouter();
 
@@ -104,7 +104,7 @@ export default {
 ### Example C: Advanced router with after middleware
 
 ```ts
-import { JoyRouter } from "@joyte/joyrouter";
+import { JoyRouter } from "joyrouter";
 
 const router = new JoyRouter();
 
@@ -190,7 +190,7 @@ export default {
 ### Example D: Advanced router with before middleware
 
 ```ts
-import { JoyRouter, ClientError } from "@joyte/joyrouter";
+import { JoyRouter, ClientError } from "joyrouter";
 
 const router = new JoyRouter();
 
