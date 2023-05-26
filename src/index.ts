@@ -735,6 +735,12 @@ export class JoyRouter {
             );
         }
 
+        if (args[0] === "request" && category === "error") {
+            throw new Error(
+                `Invalid middleware function! Middleware that takes a request (before middleware) cannot be in the error category.`
+            );
+        }
+
         // Add middleware to the dictionary, with the key being the length of the dictionary, with the category as "default"
         this.middleware[Object.keys(this.middleware).length] = {
             handler: middleware,

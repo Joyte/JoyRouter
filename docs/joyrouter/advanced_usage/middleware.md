@@ -103,6 +103,11 @@ To do this, use `router.use` with `request: Request`:
 Categories can be assigned to functions, using the `@category` decorator.
 See [this page](../../jrdoc/category.md) for more information.
 
+!!! tip
+
+    By setting the middleware category to `error`, you can make it so that the middleware is only run when an error is thrown.
+    (Also technically if `@category error` is set on a jsdoc route, but that's weird, don't do that!)
+
 They can then be used to only run middleware for certain categories:
 
 !!! example
