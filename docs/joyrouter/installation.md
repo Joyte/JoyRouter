@@ -22,4 +22,4 @@ To install the package, one of the following commands can be used:
 
 ## Usage
 
-To use the package, check out [the documentation](usage.md).
+To use the package, check out [the documentation](basic_usage.md).

@@ -178,7 +178,6 @@ export class JoyRouterDocs {
                     );
                 }
 
-                let optional;
                 if (
                     paramAttributes("where") === "path" &&
                     paramAttributes("optional")
@@ -188,23 +187,41 @@ export class JoyRouterDocs {
                     );
                 }
 
-                const paramObject: OpenAPIV3.ParameterObject = {
-                    in: paramAttributes("where"),
-                    name: paramAttributes("name"),
-                    description: paramDescription,
-                    required: paramAttributes("optional") ? false : true,
-                    deprecated: paramAttributes("deprecated"),
-                    schema: {
-                        type: paramAttributes("type"),
-                        ...(paramAttributes("contentType")
-                            ? {
-                                  format: paramAttributes("contentType"),
-                              }
-                            : {}),
-                    },
-                };
+                let returnObject:
+                    | OpenAPIV3.ParameterObject
+                    | OpenAPIV3.RequestBodyObject
+                    | {} = {};
+                if (paramAttributes("where") === "body") {
+                    returnObject = {
+                        description: paramDescription,
+                        required: paramAttributes("optional") ? false : true,
+                        content: {
+                            [paramAttributes("contentType")]: {
+                                schema: {
+                                    type: paramAttributes("type"),
+                                },
+                            },
+                        },
+                    };
+                } else {
+                    returnObject = {
+                        in: paramAttributes("where"),
+                        name: paramAttributes("name"),
+                        description: paramDescription,
+                        required: paramAttributes("optional") ? false : true,
+                        deprecated: paramAttributes("deprecated"),
+                        schema: {
+                            type: paramAttributes("type"),
+                            ...(paramAttributes("contentType")
+                                ? {
+                                      format: paramAttributes("contentType"),
+                                  }
+                                : {}),
+                        },
+                    };
+                }
 
-                return paramObject ? paramObject : {};
+                return returnObject ? returnObject : {};
 
             case "deprecated":
                 return true;
@@ -231,7 +248,10 @@ export class JoyRouterDocs {
         const match = this.jsdocRegex.exec(targetFunction.toString());
 
         // Create an object to store the tags
-        const tagsObject: { [key: string]: Object[] } = {};
+        const tagsObject: { [key: string]: any } = {
+            parameters: [],
+            requestBody: undefined,
+        };
 
         if (match !== null && match.groups !== undefined) {
             // Get all the tags and their values
@@ -245,17 +265,26 @@ export class JoyRouterDocs {
                         tag.groups?.tag !== undefined &&
                         tag.groups.value !== undefined
                     ) {
-                        if (tagsObject[tag.groups.tag] === undefined) {
-                            tagsObject[tag.groups.tag] = [];
+                        const tagObj = this.tagSorter(
+                            tag.groups.tag,
+                            tag.groups.value,
+                            targetFunction
+                        );
+
+                        // Check if the object is a ParameterObject
+                        if (tagObj.hasOwnProperty("in")) {
+                            tagsObject.parameters.push(tagObj);
                         }
 
-                        tagsObject[tag.groups.tag].push(
-                            this.tagSorter(
-                                tag.groups.tag,
-                                tag.groups.value,
-                                targetFunction
-                            )
-                        );
+                        // Check if the object is a RequestBodyObject
+                        if (tagObj.hasOwnProperty("content")) {
+                            if (tagsObject.requestBody !== undefined) {
+                                throw new Error(
+                                    `Multiple RequestBodyObject defined for function '${targetFunction.name}'. Only one request body is allowed per function.`
+                                );
+                            }
+                            tagsObject.requestBody = tagObj;
+                        }
                     }
                 }
 
@@ -275,20 +304,11 @@ export class JoyRouterDocs {
             return {
                 name: this.pascalspacecase(targetFunction.name),
                 description: match.groups?.jsdoc.trim(),
-                tags: tagsObject,
+                ...tagsObject,
             };
         }
     }
 
-    /**
-     * Generate the openapi.json file
-     *
-     * @param routes Routes object from JoyRouter
-     * @returns OpenAPIV3.Document object
-     * @example
-     * const openapi = new JoyRouterDocs();
-     * const openapiDocument = openapi.generateOpenAPI(routes);
-     */
     public generateOpenAPI(routes: {
         [path: string]: { [method: string]: Function };
     }): OpenAPIV3.Document {
@@ -326,8 +346,9 @@ export class JoyRouterDocs {
                             ? functionData.description
                             : undefined,
                         operationId: routes[path][method].name,
-                        parameters: functionData.tags?.param,
+                        parameters: functionData.parameters,
                         deprecated: functionData.tags?.deprecated,
+                        requestBody: functionData.requestBody,
                         responses: {
                             200: {
                                 description: "Successful Response",

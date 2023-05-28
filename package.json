@@ -1,6 +1,6 @@
 {
     "name": "joyrouter",
-    "version": "1.0.8",
+    "version": "1.1.0",
     "description": "JoyRouter is a router designed for cloudflare workers.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     ],
     "scripts": {
         "build": "tsc",
-        "test": "exit 0"
+        "testdocs": "mkdocs serve"
     },
     "repository": {
         "type": "git",

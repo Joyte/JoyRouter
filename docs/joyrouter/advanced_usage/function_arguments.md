@@ -27,6 +27,7 @@ To understand how to use them, read the [documentation on @param](../../jrdoc/pa
         -   `query` - The argument is a query parameter
         -   `header` - The argument is a header
         -   `cookie` - The argument is a cookie
+        -   `body` - The argument is in the body of the request
         ```
 
     === "type:"
@@ -37,6 +38,18 @@ To understand how to use them, read the [documentation on @param](../../jrdoc/pa
         -   `boolean` - The argument is a boolean
         -   `object` - The argument is a json object
         ```
+
+    === "contentType:"
+        These are for use with the `body` `where:`.
+
+        ```md
+        -   `application/json` - The argument is a json object
+        ```
+
+!!! tip
+
+    If using the `body` argument, the only type avaliable is `object`.
+    It's also reccomended to specify a contentType.
 
 ## Path example:
 

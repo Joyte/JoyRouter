@@ -92,9 +92,17 @@ export class JoyRouter {
         521: "Web Server Is Down",
     };
 
-    public validWheres: string[] = ["path", "query", "header", "cookie"];
+    public validWheres: string[] = [
+        "path",
+        "query",
+        "header",
+        "cookie",
+        "body",
+    ];
 
-    public validDataTypes: string[] = ["string", "number", "boolean", "json"];
+    public validDataTypes: string[] = ["string", "number", "boolean", "object"];
+
+    public validContentTypes: string[] = ["application/json"];
 
     /**
      * Whether you want the router to handle errors.
@@ -206,6 +214,20 @@ export class JoyRouter {
                     const typeMatch = tag.match(/type:([^ ]*)/);
                     const nameMatch = tag.match(/name:([^ ]*)/);
                     const whereMatch = tag.match(/where:([^ ]*)/);
+                    const contentTypeMatch = tag.match(/contentType:([^ ]*)/);
+
+                    if (
+                        contentTypeMatch &&
+                        !this.validContentTypes.includes(contentTypeMatch?.[1])
+                    ) {
+                        throw new Error(
+                            `Invalid contentType:${contentTypeMatch?.[1]} in ${
+                                func.name
+                            }. Should be one of ${this.validContentTypes.join(
+                                ", "
+                            )}`
+                        );
+                    }
 
                     const optionalMatch = tag.match(/ optional/);
                     const deprecatedMatch = tag.match(/ deprecated/);
@@ -224,11 +246,24 @@ export class JoyRouter {
                     if (type && name && where) {
                         if (!this.validWheres.includes(where)) {
                             throw new Error(
-                                `Invalid where: ${where} in ${tag} in ${
+                                `Invalid where:${where} in ${
                                     func.name
                                 }. Should be one of ${this.validWheres.join(
                                     ", "
                                 )}`
+                            );
+                        }
+
+                        // Make sure if where is 'body', type is 'object'
+                        if (where === "body" && type !== "object") {
+                            throw new Error(
+                                `Invalid type:${type} in ${func.name}. Should be 'object' when where is 'body'`
+                            );
+                        }
+
+                        if (where === "query" && type === "object") {
+                            throw new Error(
+                                `Invalid type:${type} in ${func.name}. Should not be 'object' when where is 'query'`
                             );
                         }
 
@@ -299,6 +334,17 @@ export class JoyRouter {
             ...this.handlerArgs[path],
             [method]: handlerArgs,
         };
+
+        // Check if any where: is set to body, and if so make sure method is not GET. Use for loop
+        if (handlerArgs) {
+            Object.keys(handlerArgs).forEach((arg) => {
+                if (handlerArgs[arg].where === "body" && method === "GET") {
+                    throw new Error(
+                        `The path variable '${arg}' in '${ogpath}' has the 'where:' tag set to 'body' but the method is 'GET'.`
+                    );
+                }
+            });
+        }
 
         if (pathParams) {
             pathParams.forEach((arg) => {
@@ -776,12 +822,12 @@ export class JoyRouter {
      * @param argData The argument data to use.
      * @param params The parameters to use.
      */
-    getArgData(
+    async getArgData(
         request: Request,
         arg: string,
         argData: { [key: string]: string },
         params: { [key: string]: string } = {}
-    ): any {
+    ): Promise<any> {
         if (!this.validWheres.includes(argData.where)) {
             throw new Error(
                 `Invalid data type ${
@@ -835,7 +881,7 @@ export class JoyRouter {
                 if (e instanceof SyntaxError) {
                     if (optional && data == undefined) return undefined;
                     throw new ClientError(
-                        `Invalid JSON for ${arg}! ${e.message}`
+                        `Invalid JSON for Request Body! ${e.message}`
                     );
                 } else if (e instanceof TypeError) {
                     if (optional && data == undefined) return undefined;
@@ -903,6 +949,35 @@ export class JoyRouter {
                     argument,
                     argData.type,
                     argData.other.includes("optional")
+                );
+            case "body":
+                switch (request.headers.get("Content-Type")) {
+                    case "application/json":
+                        // Try to parse the body as JSON, and if it fails, throw an error
+                        let body = await request.text();
+                        if (!body && !argData.other.includes("optional")) {
+                            throw new ClientError(
+                                `Missing required body parameter!`
+                            );
+                        }
+
+                        return applyDataType(
+                            body,
+                            argData.type,
+                            argData.other.includes("optional")
+                        );
+                    default:
+                        throw new ClientError(
+                            `Invalid Content-Type header! Should be 'application/json'!`
+                        );
+                }
+            default:
+                throw new Error(
+                    `Invalid data type ${
+                        argData.where
+                    } in getArgData! Should be one of ${this.validWheres.join(
+                        ", "
+                    )}`
                 );
         }
     }
@@ -1011,22 +1086,44 @@ export class JoyRouter {
             // Check if a matching entry is in params
             if (params[arg]) {
                 // If so, add it to args
-                args.push(
-                    this.getArgData(
-                        request,
-                        arg,
-                        {
-                            where: "path",
-                            type: handlerArgs[arg]["type"],
-                            other: "",
-                        },
-                        params
-                    )
-                );
+                try {
+                    args.push(
+                        await this.getArgData(
+                            request,
+                            arg,
+                            {
+                                where: "path",
+                                type: handlerArgs[arg]["type"],
+                                other: "",
+                            },
+                            params
+                        )
+                    );
+                } catch (e: any) {
+                    if (e instanceof ClientError) {
+                        return this.errorResponse(
+                            e.statusCode,
+                            e.statusMessage
+                        )();
+                    }
+                    throw e;
+                }
                 continue;
             } else if (handlerArgs[arg] && !["request"].includes(arg)) {
                 // Matching entry must be in handlerargs
-                args.push(this.getArgData(request, arg, handlerArgs[arg]));
+                try {
+                    args.push(
+                        await this.getArgData(request, arg, handlerArgs[arg])
+                    );
+                } catch (e: any) {
+                    if (e instanceof ClientError) {
+                        return this.errorResponse(
+                            e.statusCode,
+                            e.statusMessage
+                        )();
+                    }
+                    throw e;
+                }
             } else {
                 // Check pre-defined arguments
                 switch (arg) {

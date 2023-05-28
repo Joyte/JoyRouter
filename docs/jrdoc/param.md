@@ -50,6 +50,16 @@ The general format for a param tag is as follows:
 
         In this example, `authorization` is an argument that will be obtained from the header and passed to the function parameter `authorization`.
 
+    === "contentType:"
+
+        The `contentType:` part specifies the content type of the argument. This is only used for `body` arguments.
+
+        ```jsdoc
+        @param where:body type:object contentType:application/json name:body | The request body
+        ```
+
+        In this example, `body` is an argument that will be obtained from the body of the request and interpreted as a `json` object.
+
 !!! abstract "Flags"
 
     There are additional optional flags that can be used to provide more information about the parameters.
