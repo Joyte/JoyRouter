@@ -12,3 +12,8 @@ It is also used for the middlewares to determine which routes to apply to.
     @category MyCategory
     ```
     In this example, the route is in the category `MyCategory`.
+
+!!! warning
+
+    The `@category` tag currently should only be placed ***once*** in the jrdoc. In the future,
+    you will be able to assign a route to multiple categories.
