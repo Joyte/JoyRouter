@@ -2,7 +2,7 @@
 
 JoyRouter is a router designed for cloudflare workers. It has many functionalities, such as:
 
--   Swagger UI documentation
+-   [Swagger UI documentation](https://swagger.io/tools/swagger-ui/)
 -   Automatic OPTIONS request handling
 -   Middleware
 -   JSON responses
