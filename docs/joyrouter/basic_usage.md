@@ -47,7 +47,7 @@ router
 
 ## Handle a request
 
-To handle start handle the requests, use the `router.handle` method. You should have this code in your main file:
+To start handling requests, use the `router.handle` method. You should have this code in your main file:
 
 ```ts
 export default {
