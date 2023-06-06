@@ -14,11 +14,16 @@ jobs:
         steps:
             - name: Checkout
               uses: actions/checkout@v3
+
+            - name: Build Docs
+              run: |
+                  docker run --rm -v ${PWD}:/docs squidfunk/mkdocs-material build
+
             - name: Publish
               uses: cloudflare/pages-action@1
               with:
                   apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
                   accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-                  projectName: joyrouter # e.g. 'my-project'
-                  directory: docs # e.g. 'dist'
+                  projectName: joyrouter
+                  directory: site # this should be your build output directory. Change if necessary
                   gitHubToken: ${{ secrets.GITHUB_TOKEN }}
