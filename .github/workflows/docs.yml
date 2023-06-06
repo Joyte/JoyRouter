@@ -1,3 +1,5 @@
+name: Deploy Docs to Cloudflare Pages
+
 on:
     push:
         paths:
