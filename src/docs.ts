@@ -225,6 +225,9 @@ export class JoyRouterDocs {
 
             case "deprecated":
                 return true;
+
+            case "category":
+                return tagValue;
         }
 
         return {};
@@ -275,15 +278,23 @@ export class JoyRouterDocs {
                         if (tagObj.hasOwnProperty("in")) {
                             tagsObject.parameters.push(tagObj);
                         }
-
                         // Check if the object is a RequestBodyObject
-                        if (tagObj.hasOwnProperty("content")) {
+                        else if (tagObj.hasOwnProperty("content")) {
                             if (tagsObject.requestBody !== undefined) {
                                 throw new Error(
                                     `Multiple RequestBodyObject defined for function '${targetFunction.name}'. Only one request body is allowed per function.`
                                 );
                             }
                             tagsObject.requestBody = tagObj;
+                        }
+                        // Otherwise, add it to the object
+                        else {
+                            // tagObj is a string
+                            if (typeof tagObj === "string") {
+                                tagsObject[tag.groups.tag] = tagObj.trim();
+                            } else {
+                                tagsObject[tag.groups.tag] = tagObj;
+                            }
                         }
                     }
                 }
@@ -341,6 +352,7 @@ export class JoyRouterDocs {
                 // PathsObject[PathItemObject]
                 openapi.paths[path] = {
                     [method.toLowerCase()]: {
+                        tags: [functionData.category ?? "default"],
                         summary: functionData ? functionData.name : undefined,
                         description: functionData
                             ? functionData.description
