@@ -53,7 +53,7 @@ function get_path(request: Request, returnable: string) {
 router
     .json("GET", "/", { detail: "Hello world!" }, 200)
     .post("/", post_path);
-    .get("/get", get_path)
+    .get("/get", get_path);
 
 export default {
     async fetch(request: Request) {
